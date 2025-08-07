@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Number to Word Converter</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Font Awesome for icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Use the Inter font from Google Fonts */
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #e2e8f0; /* Soft gray-blue background */
+            transition: background-color 0.3s ease;
+        }
+
+        /* Custom scrollbar for the textarea */
+        textarea::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        textarea::-webkit-scrollbar-thumb {
+            background-color: #cbd5e1;
+            border-radius: 4px;
+        }
+
+        textarea::-webkit-scrollbar-track {
+            background-color: #f1f5f9;
+        }
+
+        /* Copy notification styling */
+        #copy-notification {
+            opacity: 0;
+            transform: translateY(20px);
+            transition: opacity 0.3s ease-in-out, transform 0.3s ease-in-out;
+        }
+
+        #copy-notification.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        /* Toggle switch styling */
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 48px; /* Larger width */
+            height: 28px; /* Larger height */
+        }
+
+        .toggle-switch input {
+            opacity: 0;
+            width: 0;
+            height: 0;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            -webkit-transition: .4s;
+            transition: .4s;
+            border-radius: 28px; /* Match height for full roundness */
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 20px; /* Smaller than height to allow padding */
+            width: 20px; /* Smaller than width to allow padding */
+            left: 4px;
+            bottom: 4px;
+            background-color: white;
+            -webkit-transition: .4s;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked + .slider {
+            background-color: #2563eb; /* Blue-600 */
+        }
+
+        input:focus + .slider {
+            box-shadow: 0 0 1px #2563eb;
+        }
+
+        input:checked + .slider:before {
+            -webkit-transform: translateX(20px); /* Move 20px for larger switch */
+            -ms-transform: translateX(20px);
+            transform: translateX(20px);
+        }
+        /* Style for disabled toggle */
+        input:disabled + .slider {
+            background-color: #e2e8f0; /* Light gray for disabled */
+            cursor: not-allowed;
+        }
+
+        input:disabled + .slider:before {
+            background-color: #cbd5e1; /* Even lighter gray for disabled knob */
+        }
+    </style>
+</head>
+<body class="flex items-center justify-center min-h-screen p-4 flex-col">
+
+    <!-- Main Container -->
+    <div class="bg-white p-8 md:p-12 rounded-3xl shadow-2xl max-w-lg w-full border border-gray-100">
+        <h1 class="text-4xl md:text-5xl font-extrabold text-center mb-4 tracking-tight bg-gradient-to-r from-blue-500 to-indigo-600 bg-clip-text text-transparent">
+            Number to Word
+        </h1>
+        <p class="text-center text-gray-500 text-sm mb-8">
+            simplifying the pain of typing it manually
+        </p>
+
+        <!-- Input Section -->
+        <div class="flex flex-col gap-4 mb-6">
+            <label for="numberInput" class="text-lg font-semibold text-gray-700">Enter a Number:</label>
+            <input type="number" id="numberInput" placeholder="e.g., 206" min="0" max="1e300"
+                   class="w-full p-4 border-2 border-gray-200 rounded-xl text-gray-800 font-medium bg-white focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-400 transition duration-300 ease-in-out">
+        </div>
+
+        <!-- Toggles Section -->
+        <div class="flex flex-col gap-4 mb-6">
+            <div class="flex items-center justify-between">
+                <label for="ohToggle" class="text-base font-semibold text-gray-700">Replace 'zero' with 'oh'</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="ohToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="flex items-center justify-between">
+                <label for="fullWordsToggle" class="text-base font-semibold text-gray-700">Convert to full words</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="fullWordsToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+        </div>
+
+        <!-- Output Section -->
+        <div class="flex flex-col gap-4 mb-6">
+            <label for="textOutput" class="text-lg font-semibold text-gray-700">Converted Text:</label>
+            <textarea id="textOutput" readonly rows="5" placeholder="e.g., two zero six"
+                      class="w-full p-4 border-2 border-gray-200 rounded-xl text-gray-800 bg-gray-50 resize-none font-medium focus:outline-none focus:ring-4 focus:ring-blue-200 transition duration-300 ease-in-out"></textarea>
+            
+            <!-- Copy Button -->
+            <div class="flex justify-center mt-4">
+                <button id="copyButton"
+                        class="w-full md:w-1/2 p-3 bg-gradient-to-r from-blue-500 to-indigo-600 text-white rounded-lg shadow-md hover:shadow-lg transform hover:-translate-y-0.5 transition duration-300 ease-in-out focus:outline-none focus:ring-4 focus:ring-blue-300 disabled:opacity-50 disabled:cursor-not-allowed">
+                    <i class="fas fa-copy mr-2"></i> Copy Text
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Copy Notification - Now positioned at the top-right -->
+    <div id="copy-notification" class="fixed top-8 right-8 z-50 bg-green-500 text-white px-6 py-3 rounded-xl shadow-lg font-semibold text-center">
+        Copied to clipboard!
+    </div>
+    
+    <!-- Footer Section -->
+    <div class="mt-4 w-full max-w-lg text-center text-xs text-gray-400">
+        <!-- The transition is now only on the parent <a> tag to ensure a unified effect -->
+        <a href="mailto:arunthomas04042001@gmail.com" class="group transition duration-300 ease-in-out">
+            <i class="fas fa-envelope mr-1 text-gray-400 group-hover:text-indigo-600"></i>
+            <span class="text-gray-400 group-hover:bg-gradient-to-r group-hover:from-blue-500 group-hover:to-indigo-600 group-hover:bg-clip-text group-hover:text-transparent">
+                Contact Developer
+            </span>
+        </a>
+    </div>
+
+    <script>
+        document.addEventListener('DOMContentLoaded', () => {
+            const numberInput = document.getElementById('numberInput');
+            const textOutput = document.getElementById('textOutput');
+            const copyButton = document.getElementById('copyButton');
+            const copyNotification = document.getElementById('copy-notification');
+            const ohToggle = document.getElementById('ohToggle');
+            const fullWordsToggle = document.getElementById('fullWordsToggle');
+
+            // Map each digit to its word representation
+            const digitMap = {
+                '0': 'zero', '1': 'one', '2': 'two', '3': 'three', '4': 'four',
+                '5': 'five', '6': 'six', '7': 'seven', '8': 'eight', '9': 'nine'
+            };
+
+            // Word representations for numbers up to 999
+            const units = ['', 'one', 'two', 'three', 'four', 'five', 'six', 'seven', 'eight', 'nine'];
+            const teens = ['ten', 'eleven', 'twelve', 'thirteen', 'fourteen', 'fifteen', 'sixteen', 'seventeen', 'eighteen', 'nineteen'];
+            const tens = ['', '', 'twenty', 'thirty', 'forty', 'fifty', 'sixty', 'seventy', 'eighty', 'ninety'];
+            const scales = ['', 'thousand', 'million', 'billion', 'trillion', 'quadrillion', 'quintillion', 'sextillion', 'septillion', 'octillion', 'nonillion', 'decillion', 'undecillion', 'duodecillion', 'tredecillion', 'quattuordecillion', 'quindecillion', 'sexdecillion', 'septendecillion', 'octodecillion', 'novemdecillion', 'vigintillion', /* add more as needed */ ];
+
+            // Function to convert a number string (up to 999) to words
+            function convertChunkToWords(num) {
+                let chunk = parseInt(num, 10);
+                if (chunk === 0) return '';
+                let words = '';
+
+                if (chunk >= 100) {
+                    words += units[Math.floor(chunk / 100)] + ' hundred';
+                    chunk %= 100;
+                    if (chunk > 0) words += ' ';
+                }
+
+                if (chunk >= 20) {
+                    words += tens[Math.floor(chunk / 10)];
+                    chunk %= 10;
+                    if (chunk > 0) words += ' ';
+                }
+
+                if (chunk >= 10) {
+                    words += teens[chunk - 10];
+                    chunk = 0;
+                }
+
+                if (chunk > 0) {
+                    words += units[chunk];
+                }
+                return words;
+            }
+
+            // Function to convert a large number string to full words
+            function numberToFullWords(numberString) {
+                if (numberString === '0') return 'zero';
+                if (!numberString) return '';
+
+                let num = numberString.replace(/^0+/, ''); // Remove leading zeros
+                if (num === '') return 'zero'; // If only zeros were entered
+
+                let parts = [];
+                let i = 0;
+                while (num.length > 0) {
+                    let chunk = '';
+                    if (num.length > 3) {
+                        chunk = num.slice(-3);
+                        num = num.slice(0, -3);
+                    } else {
+                        chunk = num;
+                        num = '';
+                    }
+
+                    let chunkWords = convertChunkToWords(chunk);
+                    if (chunkWords !== '') {
+                        let scale = scales[i];
+                        if (scale) {
+                            parts.unshift(chunkWords + ' ' + scale);
+                        } else {
+                            parts.unshift(chunkWords);
+                        }
+                    } else if (chunk === '000' && i > 0 && parts.length > 0) {
+                        // Handle cases like 1,000,000 where middle thousands are zero
+                        // Do nothing, effectively skipping the empty scale
+                    }
+                    i++;
+                }
+                return parts.join(' ').trim();
+            }
+
+            // Function to convert each digit of a number string to a word
+            function numberToIndividualWords(numberString) {
+                if (!numberString) {
+                    return '';
+                }
+                const words = [];
+                for (const digit of numberString) {
+                    words.push(digitMap[digit]);
+                }
+                return words.join(' ');
+            }
+            
+            // Define the maximum number as a string to avoid precision issues
+            const maxString = "1" + "0".repeat(300);
+
+            // Function to update the output based on current input and toggle states
+            function updateOutput() {
+                const numberString = numberInput.value.trim();
+                let result = '';
+
+                // Update placeholder based on fullWordsToggle state
+                if (fullWordsToggle.checked) {
+                    textOutput.placeholder = "e.g., two hundred six";
+                    ohToggle.disabled = true; // Disable ohToggle when fullWordsToggle is checked
+                    ohToggle.checked = false; // Uncheck ohToggle when disabled
+                } else {
+                    ohToggle.disabled = false; // Enable ohToggle when fullWordsToggle is unchecked
+                    if (ohToggle.checked) {
+                        textOutput.placeholder = "e.g., two oh six";
+                    } else {
+                        textOutput.placeholder = "e.g., two zero six";
+                    }
+                }
+
+
+                if (numberString === '') {
+                    result = '';
+                    copyButton.disabled = true;
+                } else if (isNaN(Number(numberString)) || Number(numberString) < 0) {
+                    result = "Please enter a positive number.";
+                    copyButton.disabled = true;
+                } else if (numberString.length > maxString.length || (numberString.length === maxString.length && numberString > maxString)) {
+                    result = `Number is too large. Please enter a number less than $10^{300}$.`;
+                    copyButton.disabled = true;
+                } else {
+                    if (fullWordsToggle.checked) {
+                        result = numberToFullWords(numberString);
+                    } else {
+                        result = numberToIndividualWords(numberString);
+                    }
+
+                    if (ohToggle.checked && !ohToggle.disabled) { // Only apply if ohToggle is checked and not disabled
+                        result = result.replace(/zero/g, 'oh');
+                    }
+                    copyButton.disabled = false;
+                }
+                textOutput.value = result;
+            }
+
+            // Event listeners for input and toggle changes
+            numberInput.addEventListener('input', updateOutput);
+            ohToggle.addEventListener('change', updateOutput);
+            fullWordsToggle.addEventListener('change', updateOutput);
+
+            // Copy to clipboard functionality
+            copyButton.addEventListener('click', () => {
+                textOutput.select();
+                textOutput.setSelectionRange(0, 99999); // For mobile devices
+                document.execCommand('copy');
+
+                copyNotification.classList.add('show');
+                
+                setTimeout(() => {
+                    copyNotification.classList.remove('show');
+                }, 2000);
+            });
+
+            // Initial state
+            copyButton.disabled = true;
+            updateOutput(); // Call on load to set initial state based on toggles
+        });
+    </script>
+
+</body>
+</html>
