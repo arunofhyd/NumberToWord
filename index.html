@@ -5,6 +5,21 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="google-site-verification" content="iExbroKtO4ZRq3ZjUsyY8JJowXvx-yHOy4yQq0iS6vY" />
     <title>Number to Word Converter</title>
+    <meta name="description" content="A free online tool to convert numbers into words instantly. Supports multiple formats including full words, digit-by-digit, and two-digit reader conventions for easy reading and transcription.">
+    <meta name="keywords" content="number to word, number to text, number converter, convert numbers to words, number spelling, online number converter, two-digit reader, number transcription">
+
+    <!-- Open Graph / Facebook -->
+    <meta property="og:type" content="website">
+    <meta property="og:url" content="https://ntwaoh.vercel.app/">
+    <meta property="og:title" content="Number to Word Converter">
+    <meta property="og:description" content="Instantly convert numbers to words in multiple formats with this easy-to-use online tool.">
+
+    <!-- Twitter -->
+    <meta property="twitter:card" content="summary_large_image">
+    <meta property="twitter:url" content="https://ntwaoh.vercel.app/">
+    <meta property="twitter:title" content="Number to Word Converter">
+    <meta property="twitter:description" content="Instantly convert numbers to words in multiple formats with this easy-to-use online tool.">
+
     <!-- Tailwind CSS CDN -->
     <script src="https://cdn.tailwindcss.com"></script>
     <!-- Font Awesome for icons -->
@@ -122,7 +137,7 @@
         <!-- Input Section -->
         <div class="flex flex-col gap-4 mb-6">
             <label for="numberInput" class="text-lg font-semibold text-gray-700">Enter a Number:</label>
-            <input type="number" id="numberInput" placeholder="e.g., 206" min="0" max="1e300"
+            <input type="number" id="numberInput" placeholder="e.g., 2060" min="0" max="1e300"
                    class="w-full p-4 border-2 border-gray-200 rounded-xl text-gray-800 font-medium bg-white focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-400 transition duration-300 ease-in-out">
         </div>
 
@@ -139,6 +154,13 @@
                 <label for="fullWordsToggle" class="text-base font-semibold text-gray-700">Convert to full words</label>
                 <label class="toggle-switch">
                     <input type="checkbox" id="fullWordsToggle">
+                    <span class="slider"></span>
+                </label>
+            </div>
+            <div class="flex items-center justify-between">
+                <label for="twoDigitToggle" class="text-base font-semibold text-gray-700">Two-digit reader convention</label>
+                <label class="toggle-switch">
+                    <input type="checkbox" id="twoDigitToggle">
                     <span class="slider"></span>
                 </label>
             </div>
@@ -184,6 +206,7 @@
             const copyNotification = document.getElementById('copy-notification');
             const ohToggle = document.getElementById('ohToggle');
             const fullWordsToggle = document.getElementById('fullWordsToggle');
+            const twoDigitToggle = document.getElementById('twoDigitToggle');
 
             // Map each digit to its word representation
             const digitMap = {
@@ -225,7 +248,6 @@
                 }
                 return words;
             }
-
             // Function to convert a large number string to full words
             function numberToFullWords(numberString) {
                 if (numberString === '0') return 'zero';
@@ -274,6 +296,23 @@
                 }
                 return words.join(' ');
             }
+
+            function numberToTwoDigitWords(numberString) {
+                if (!numberString) return '';
+                let words = [];
+                let i = 0;
+                while (i < numberString.length) {
+                    if (numberString.length % 2 !== 0 && i === 0) {
+                        words.push(digitMap[numberString[i]]);
+                        i++;
+                    } else {
+                        const chunk = numberString.substring(i, i + 2);
+                        words.push(convertChunkToWords(chunk));
+                        i += 2;
+                    }
+                }
+                return words.join(' ');
+            }
             
             // Define the maximum number as a string to avoid precision issues
             const maxString = "1" + "0".repeat(300);
@@ -283,20 +322,16 @@
                 const numberString = numberInput.value.trim();
                 let result = '';
 
-                // Update placeholder based on fullWordsToggle state
+                // Update placeholder based on toggle states
                 if (fullWordsToggle.checked) {
-                    textOutput.placeholder = "e.g., two hundred six";
-                    ohToggle.disabled = true; // Disable ohToggle when fullWordsToggle is checked
-                    ohToggle.checked = false; // Uncheck ohToggle when disabled
+                    textOutput.placeholder = "e.g., two thousand sixty";
+                } else if (twoDigitToggle.checked) {
+                    textOutput.placeholder = "e.g., twenty sixty";
+                } else if (ohToggle.checked) {
+                    textOutput.placeholder = "e.g., two oh six oh";
                 } else {
-                    ohToggle.disabled = false; // Enable ohToggle when fullWordsToggle is unchecked
-                    if (ohToggle.checked) {
-                        textOutput.placeholder = "e.g., two oh six";
-                    } else {
-                        textOutput.placeholder = "e.g., two zero six";
-                    }
+                    textOutput.placeholder = "e.g., two zero six zero";
                 }
-
 
                 if (numberString === '') {
                     result = '';
@@ -310,6 +345,8 @@
                 } else {
                     if (fullWordsToggle.checked) {
                         result = numberToFullWords(numberString);
+                    } else if (twoDigitToggle.checked) {
+                        result = numberToTwoDigitWords(numberString);
                     } else {
                         result = numberToIndividualWords(numberString);
                     }
@@ -324,8 +361,30 @@
 
             // Event listeners for input and toggle changes
             numberInput.addEventListener('input', updateOutput);
-            ohToggle.addEventListener('change', updateOutput);
-            fullWordsToggle.addEventListener('change', updateOutput);
+
+            ohToggle.addEventListener('change', () => {
+                if (ohToggle.checked) {
+                    fullWordsToggle.checked = false;
+                    twoDigitToggle.checked = false;
+                }
+                updateOutput();
+            });
+
+            fullWordsToggle.addEventListener('change', () => {
+                if (fullWordsToggle.checked) {
+                    ohToggle.checked = false;
+                    twoDigitToggle.checked = false;
+                }
+                updateOutput();
+            });
+
+            twoDigitToggle.addEventListener('change', () => {
+                if (twoDigitToggle.checked) {
+                    ohToggle.checked = false;
+                    fullWordsToggle.checked = false;
+                }
+                updateOutput();
+            });
 
             // Copy to clipboard functionality
             copyButton.addEventListener('click', () => {
