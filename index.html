@@ -300,16 +300,9 @@
             function numberToTwoDigitWords(numberString) {
                 if (!numberString) return '';
                 let words = [];
-                let i = 0;
-                while (i < numberString.length) {
-                    if (numberString.length % 2 !== 0 && i === 0) {
-                        words.push(digitMap[numberString[i]]);
-                        i++;
-                    } else {
-                        const chunk = numberString.substring(i, i + 2);
-                        words.push(convertChunkToWords(chunk));
-                        i += 2;
-                    }
+                for (let i = 0; i < numberString.length; i += 2) {
+                    const chunk = numberString.substring(i, i + 2);
+                    words.push(convertChunkToWords(chunk));
                 }
                 return words.join(' ');
             }
@@ -321,6 +314,16 @@
             function updateOutput() {
                 const numberString = numberInput.value.trim();
                 let result = '';
+
+                // Disable two-digit toggle if the number of digits is odd
+                if (numberString.length > 0 && numberString.length % 2 !== 0) {
+                    twoDigitToggle.disabled = true;
+                    if (twoDigitToggle.checked) {
+                        twoDigitToggle.checked = false; // Uncheck if it was active
+                    }
+                } else {
+                    twoDigitToggle.disabled = false;
+                }
 
                 // Update placeholder based on toggle states
                 if (fullWordsToggle.checked) {
