@@ -137,7 +137,7 @@
         <!-- Input Section -->
         <div class="flex flex-col gap-4 mb-6">
             <label for="numberInput" class="text-lg font-semibold text-gray-700">Enter a Number:</label>
-            <input type="number" id="numberInput" placeholder="e.g., 2060" min="0" max="1e300"
+            <input type="text" id="numberInput" placeholder="e.g., 2060.75"
                    class="w-full p-4 border-2 border-gray-200 rounded-xl text-gray-800 font-medium bg-white focus:outline-none focus:ring-4 focus:ring-blue-200 focus:border-blue-400 transition duration-300 ease-in-out">
         </div>
 
@@ -315,8 +315,11 @@
                 const numberString = numberInput.value.trim();
                 let result = '';
 
-                // Disable two-digit toggle if the number of digits is odd
-                if (numberString.length > 0 && numberString.length % 2 !== 0) {
+                const hasDecimal = numberString.includes('.');
+                const [integerPart, decimalPart] = numberString.split('.');
+
+                // Disable two-digit toggle if the number of digits is odd or if there's a decimal
+                if ((integerPart.length > 0 && integerPart.length % 2 !== 0) || hasDecimal) {
                     twoDigitToggle.disabled = true;
                     if (twoDigitToggle.checked) {
                         twoDigitToggle.checked = false; // Uncheck if it was active
@@ -327,32 +330,40 @@
 
                 // Update placeholder based on toggle states
                 if (fullWordsToggle.checked) {
-                    textOutput.placeholder = "e.g., two thousand sixty";
+                    textOutput.placeholder = "e.g., two thousand sixty point seven five";
                 } else if (twoDigitToggle.checked) {
                     textOutput.placeholder = "e.g., twenty sixty";
                 } else if (ohToggle.checked) {
-                    textOutput.placeholder = "e.g., two oh six oh";
+                    textOutput.placeholder = "e.g., two oh six oh point seven five";
                 } else {
-                    textOutput.placeholder = "e.g., two zero six zero";
+                    textOutput.placeholder = "e.g., two zero six zero point seven five";
                 }
 
                 if (numberString === '') {
                     result = '';
                     copyButton.disabled = true;
-                } else if (isNaN(Number(numberString)) || Number(numberString) < 0) {
+                } else if (isNaN(Number(numberString)) || !/^\d*\.?\d*$/.test(numberString) || Number(numberString) < 0) {
                     result = "Please enter a positive number.";
                     copyButton.disabled = true;
-                } else if (numberString.length > maxString.length || (numberString.length === maxString.length && numberString > maxString)) {
+                } else if (integerPart.length > maxString.length || (integerPart.length === maxString.length && integerPart > maxString)) {
                     result = `Number is too large. Please enter a number less than $10^{300}$.`;
                     copyButton.disabled = true;
                 } else {
+                    let integerWords = '';
                     if (fullWordsToggle.checked) {
-                        result = numberToFullWords(numberString);
+                        integerWords = numberToFullWords(integerPart);
                     } else if (twoDigitToggle.checked) {
-                        result = numberToTwoDigitWords(numberString);
+                        integerWords = numberToTwoDigitWords(integerPart);
                     } else {
-                        result = numberToIndividualWords(numberString);
+                        integerWords = numberToIndividualWords(integerPart);
                     }
+
+                    let decimalWords = '';
+                    if (hasDecimal && decimalPart) {
+                        decimalWords = ' point ' + numberToIndividualWords(decimalPart);
+                    }
+
+                    result = integerWords + decimalWords;
 
                     if (ohToggle.checked && !ohToggle.disabled) { // Only apply if ohToggle is checked and not disabled
                         result = result.replace(/zero/g, 'oh');
